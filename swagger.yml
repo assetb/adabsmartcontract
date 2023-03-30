@@ -1,0 +1,302 @@
+swagger: '2.0'
+info:
+  description: Blockchain API's
+  version: "1.0"
+  title: End Points for transactions
+host: 'localhost:8080'
+basePath: /v1
+tags:
+  - name: ETHEREUM
+    description: 'All Api''s for ETHEREUM (ETH,ETC)'
+  - name: BITCOIN
+    description: 'All Api''s for BITCOIN (BTC,BCH,BSV)'
+schemes:
+  - https
+paths:
+  /confirmations/{transactionHash}:
+    get:
+      tags:
+        - ETHEREUM
+        - BITCOIN
+      summary: API for getting confirmations of a transaction.
+      parameters:
+        - name: coin
+          in: query
+          required: true
+          type: string
+          enum:
+            - ETH
+            - ETC
+            - BTC
+            - BCH
+            - BSV
+        - name: transactionHash
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Response on requesting number of confirmation of a transaction.
+          schema:
+            $ref: '#/definitions/StandardResp'
+        default:
+          description: Errors with status codes
+          schema:
+            $ref: '#/definitions/Error'
+  /unSubscribeContract/{contractAddress}:
+    delete:
+      tags:
+        - ETHEREUM
+      summary: API for unsubscribe a other tokens on ethereum.
+      parameters:
+        - name: coin
+          in: query
+          required: true
+          type: string
+          enum:
+            - ETH
+            - ETC
+        - name: contractAddress
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Response on unsubscribing a contract on ethereum
+          schema:
+            $ref: '#/definitions/StandardResp'
+        default:
+          description: Errors with status codes
+          schema:
+            $ref: '#/definitions/Error'
+  /subscribeContract/{contractAddress}:
+    get:
+      tags:
+        - ETHEREUM
+      summary: API for subscribe a other tokens on ethereum.
+      parameters:
+        - name: coin
+          in: query
+          required: true
+          type: string
+          enum:
+            - ETH
+            - ETC
+        - name: contractAddress
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Response on subscribing a contract on ethereum
+          schema:
+            $ref: '#/definitions/SubscribeTokenResp'
+        default:
+          description: Errors with status codes
+          schema:
+            $ref: '#/definitions/Error'
+  /account/{address}/balance:
+    get:
+      tags:
+        - ETHEREUM
+        - BITCOIN
+      summary: API for getting a account balance from chain.
+      parameters:
+        - name: coin
+          in: query
+          required: true
+          type: string
+          enum:
+            - ETH
+            - ETC
+            - BCH
+            - BSV
+            - BTC
+        - name: address
+          in: path
+          required: true
+          type: string
+        - name: contractAddress
+          in: query
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Response on requesting balance of a particular account
+          schema:
+            $ref: '#/definitions/BalanceResp'
+        default:
+          description: Errors with status codes
+          schema:
+            $ref: '#/definitions/Error'
+  /withdraw:
+    post:
+      tags:
+        - ETHEREUM
+        - BITCOIN
+      summary: API for transfering amount of coins to account.
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: withdraw
+          description: Payload for creating a withdrawl request.
+          required: true
+          schema:
+            $ref: '#/definitions/WithdrawReq'
+      responses:
+        '200':
+          description: Response on initating a coin withdraw transaction
+          schema:
+            $ref: '#/definitions/WithdrawResp'
+        default:
+          description: Errors with status codes
+          schema:
+            $ref: '#/definitions/Error'
+  /account/{coin}/create:
+    post:
+      tags:
+        - ETHEREUM
+        - BITCOIN
+      summary: API for creating a new blockchain account.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: coin
+          in: path
+          required: true
+          type: string
+          enum:
+            - ETH
+            - ETC
+            - BCH
+            - BSV
+            - BTC
+        - name: seed
+          in: query
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Response on creating a new account
+          schema:
+            $ref: '#/definitions/NewAccountResp'
+        default:
+          description: Errors with status codes
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  NewAccountResp:
+    type: object
+    required:
+      - coin
+      - pubkey
+      - privkey
+    properties:
+      pubkey:
+        type: string
+      privkey:
+        type: string
+      coin:
+        type: string
+        enum:
+          - BTC
+          - BSV
+          - ETH
+          - ETC
+          - BCH
+  WithdrawReq:
+    type: object
+    required:
+      - coin
+      - address
+      - amount
+      - txFee
+      - internalId
+    properties:
+      contractAddress:
+        type: string
+      address:
+        type: string
+      txFee:
+        type: number
+      amount:
+        type: number
+      internalId:
+        type: string
+      coin:
+        type: string
+        enum:
+          - ETH
+          - ETC
+          - BTC
+          - BCH
+          - BSV
+  WithdrawResp:
+    required:
+      - coin
+      - to
+      - from
+      - amount
+      - transactionHash
+      - internalId
+    properties:
+      contractAddress:
+        type: string
+      to:
+        type: string
+      amount:
+        type: number
+      coin:
+        type: string
+        enum:
+          - ETH
+          - ETC
+          - BTC
+          - BCH
+          - BSV
+      transactionHash:
+        type: string
+      internalId:
+        type: string
+  Error:
+    type: object
+  StandardResp:
+    type: object
+  BalanceResp:
+    type: object
+    required:
+      - address
+      - balance
+      - coin
+    properties:
+      address:
+        type: string
+      balance:
+        type: number
+      coin:
+        type: string
+      contractAddress:
+        type: string
+  SubscribeTokenResp:
+    type: object
+    required:
+      - name
+      - symbol
+      - supply
+      - coin
+      - contractAddress
+    properties:
+      name:
+        type: string
+      supply:
+        type: number
+      symbol:
+        type: string
+      contractAddress:
+        type: string
+      coin:
+        type: string
+
